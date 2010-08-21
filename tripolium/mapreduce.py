@@ -9,6 +9,7 @@ Copyright (c) 2010 __MyCompanyName__. All rights reserved.
 A Python package for creating SQL/MR functions to be used with Aster Data's nCluster.
 """
 
+import random
 import sys
 try:
 	import cStringIO as StringIO
@@ -51,6 +52,17 @@ class ReverseMapper(BaseMapper):
 		yield u, v
 		
 		
+class SampleMapper(BaseMapper):
+	"""Sample input rows."""
+	def __init__(self, sampleProb=None, *args, **kwargs):
+		super(SampleMapper, self).__init__(*args, **kwargs)
+		self.sampleProb = sampleProb if sampleProb else 1.0
+		
+	def __call__(self,key,value):
+		if random.random() <= self.sampleProb:
+			yield key, value
+			
+			
 if __name__ == "__main__":
 	if DEBUG:
 		users = []
