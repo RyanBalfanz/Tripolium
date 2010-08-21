@@ -38,13 +38,6 @@ class IdentityMapper(BaseMapper):
 		yield key, value
 		
 		
-class UpperMapper(BaseMapper):
-	"""Emits rows in all caps."""
-	def __call__(self,key,value):
-		u, v = key, value.upper()
-		yield u, v
-		
-		
 class ReverseMapper(BaseMapper):
 	"""Emits rows in all caps."""
 	def __call__(self,key,value):
@@ -63,6 +56,13 @@ class SampleMapper(BaseMapper):
 			yield key, value
 			
 			
+class UpperMapper(BaseMapper):
+	"""Emits rows in all caps."""
+	def __call__(self,key,value):
+		u, v = key, value.upper()
+		yield u, v
+		
+		
 if __name__ == "__main__":
 	if DEBUG:
 		users = []
