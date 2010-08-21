@@ -75,7 +75,7 @@ if __name__ == "__main__":
 	else:
 		source = sys.stdin
 		
-	mapper = UpperMapper()
+	mapper = IdentityMapper()
 	for i, line in enumerate(source):
 		for k, v in mapper(i, line):
 			sys.stderr.write("%d: %s\n" % (i, (k, v)))
