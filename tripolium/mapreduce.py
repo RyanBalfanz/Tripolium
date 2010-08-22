@@ -183,7 +183,7 @@ class SessionMapper(BaseMapper):
 		yield str(userId), str(timeString) + "___" + str(self.currentSession["number"]) + "___" + str(self.currentSession["length"])
 		
 		
-class ZenoSampleMapper(BaseMapper):
+class ZenoSampleMapper(SampleMapper):
 	"""Sample input rows, after each hit the sampling probability is halved.
 	
 	:type key: int
@@ -195,13 +195,14 @@ class ZenoSampleMapper(BaseMapper):
 	:rtype: unknown
 	:return: A 2-tuple key, value pair when appropriate
 	"""
-	def __init__(self, sampleProb=None, *args, **kwargs):
-		super(ZenoSampleMapper, self).__init__(*args, **kwargs)
-		if not sampleProb:
-			sampleProb = 1.0
-			logger.debug("%s was not given a sampling probability, using %f" % (self.__class__.__name__, sampleProb,))
-		self.sampleProb = sampleProb
-
+	# def __init__(self, sampleProb=None, *args, **kwargs):
+	# 	super(ZenoSampleMapper, self).__init__(*args, **kwargs)
+	# 	if not sampleProb:
+	# 		sampleProb = 1.0
+	# 		logger.debug("%s was not given a sampling probability, using %f" % (self.__class__.__name__, sampleProb,))
+	# 	self.sampleProb = sampleProb
+	# 	logger.debug("%s.sampleProb is %f" % (self.__class__.__name__, self.sampleProb,))
+	# 	
 	def __call__(self, key, value):
 		if random.random() <= self.sampleProb:
 			self.sampleProb = 0.5 * self.sampleProb
