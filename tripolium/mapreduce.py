@@ -269,10 +269,10 @@ if __name__ == "__main__":
 		
 	mapper = IdentityMapper()
 	# mapper = ZenoSampleMapper(sampleProb=1.0)
-	logger.info("Created new %s instance" % (mapper.__class__.__name__))
+	logger.info("Created new %s instance with extra kwargs %s" % (mapper.__class__.__name__, str(argsDict)))
 	for i, line in enumerate(source):
 		i, line = i, line.rstrip(ROW_DELIMITER)
-		logger.debug("Mapper input: {k:'%d', v:'%s'}" % (i, line))
-		for k, v in mapper(i, line, **argsDict):
+		logger.debug("%s input: {k:'%d', v:'%s'}" % (mapper.__class__.__name__, i, line))
+		for k, v in mapper(i, line):
 			emitRow(COL_DELIMITER.join(map(str, [k, v])))
 			
