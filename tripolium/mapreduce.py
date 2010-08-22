@@ -22,6 +22,7 @@ from datetime import timedelta
 
 # Tripolium modules
 from settings import DEBUG, COL_DELIMITER, ROW_DELIMITER
+from utils import emitRow
 
 if DEBUG:
 	LOG_FILENAME = 'debug.log.out.txt'
@@ -46,10 +47,6 @@ logger.setLevel(LOG_LEVEL)
 logger.addHandler(rotFileHandler)
 logger.addHandler(conHandler)
 
-def emitRow(s):
-	"""Emit string row, appending row delimiter."""
-	logger.debug(s + ROW_DELIMITER)
-	sys.stdout.write(s + ROW_DELIMITER)
 		
 		
 class BaseMapper(object):
