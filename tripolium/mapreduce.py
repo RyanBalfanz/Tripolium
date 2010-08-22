@@ -34,13 +34,13 @@ class BaseMapper(object):
 		
 class IdentityMapper(BaseMapper):
 	"""The indentity mapper."""
-	def __call__(self,key,value):
+	def __call__(self, key, value):
 		yield key, value
 		
 		
 class ReverseMapper(BaseMapper):
 	"""Emits rows in all caps."""
-	def __call__(self,key,value):
+	def __call__(self, key, value):
 		u, v = key, value[::-1]
 		yield u, v
 		
@@ -51,14 +51,14 @@ class SampleMapper(BaseMapper):
 		super(SampleMapper, self).__init__(*args, **kwargs)
 		self.sampleProb = sampleProb if sampleProb else 1.0
 		
-	def __call__(self,key,value):
+	def __call__(self, key, value):
 		if random.random() <= self.sampleProb:
 			yield key, value
 			
 			
 class UpperMapper(BaseMapper):
 	"""Emits rows in all caps."""
-	def __call__(self,key,value):
+	def __call__(self, key, value):
 		u, v = key, value.upper()
 		yield u, v
 		
