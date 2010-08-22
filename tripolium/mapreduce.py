@@ -49,7 +49,10 @@ class SampleMapper(BaseMapper):
 	"""Sample input rows."""
 	def __init__(self, sampleProb=None, *args, **kwargs):
 		super(SampleMapper, self).__init__(*args, **kwargs)
-		self.sampleProb = sampleProb if sampleProb else 1.0
+		if not sampleProb:
+			sampleProb = 1.0
+			logger.debug("%s was not given a sampling probability, using %f" % (self.__class__.__name__, sampleProb,))
+		self.sampleProb = sampleProb
 		
 	def __call__(self, key, value):
 		if random.random() <= self.sampleProb:
