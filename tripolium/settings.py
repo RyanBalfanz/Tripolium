@@ -1,0 +1,4 @@
+DEBUG = True
+
+COL_DELIMITER = '\t'
+ROW_DELIMITER = '\n'

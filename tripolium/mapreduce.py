@@ -20,10 +20,9 @@ except ImportError:
 from datetime import datetime
 from datetime import timedelta
 
-DEBUG = True
+# Tripolium modules
+from settings import DEBUG, COL_DELIMITER, ROW_DELIMITER
 
-COL_DELIMITER = '\t'
-ROW_DELIMITER = '\n'
 if DEBUG:
 	LOG_FILENAME = 'debug.log.out.txt'
 	LOG_LEVEL = logging.DEBUG
