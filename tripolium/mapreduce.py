@@ -47,6 +47,10 @@ logger.setLevel(LOG_LEVEL)
 logger.addHandler(rotFileHandler)
 logger.addHandler(conHandler)
 
+def emitRow(s):
+	"""Emit string row, appending row delimiter."""
+	logging.debug(s + ROW_DELIMITER)
+	sys.stdout.write(s + ROW_DELIMITER)
 		
 		
 class BaseMapper(object):
