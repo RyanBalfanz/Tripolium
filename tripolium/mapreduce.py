@@ -17,6 +17,8 @@ try:
 	import cStringIO as StringIO
 except ImportError:
 	import StringIO
+from datetime import datetime
+from datetime import timedelta
 
 DEBUG = True
 
@@ -84,6 +86,36 @@ class SampleMapper(BaseMapper):
 			yield key, value
 			
 			
+class SessionMapper(BaseMapper):
+	"""A mapper to sessionize events."""
+	def __init__(self, timeout=60, *args, **kwargs):
+		super(SessionMapper, self).__init__(*args, **kwargs)
+		self.dateTimeFormat = "%Y-%m-%d %H:%M:%S"
+		self.sessionTimeoutSeconds = timedelta(seconds=timeout)
+		self.currentSession = {}
+
+	def __call__(self, key, value):
+		partitionRowNum, row = key, value
+
+		userId, timeString = row.split(COL_DELIMITER)
+		timeString = datetime.strptime(timeString, self.dateTimeFormat)
+
+		if not self.currentSession:
+			self.currentSession["number"] = 0
+			self.currentSession["start"] = timeString
+			self.currentSession["length"] = timedelta(0.0)
+
+		dt = timeString - self.currentSession["start"]
+		if dt > self.sessionTimeoutSeconds:
+			self.currentSession["number"] += 1
+			self.currentSession["start"] = timeString
+			self.currentSession["length"] = timedelta(0.0)
+		else:
+			self.currentSession["length"] = dt
+
+		yield str(userId), str(timeString) + "___" + str(self.currentSession["number"]) + "___" + str(self.currentSession["length"])
+		
+		
 class ZenoSampleMapper(BaseMapper):
 	"""Sample input rows."""
 	def __init__(self, sampleProb=None, *args, **kwargs):
