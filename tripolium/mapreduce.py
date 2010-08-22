@@ -175,7 +175,11 @@ if __name__ == "__main__":
 		source = sys.stdin
 		
 	mapper = IdentityMapper()
+	# mapper = ZenoSampleMapper(sampleProb=1.0)
+	logger.info("Created new %s instance" % (mapper.__class__.__name__))
 	for i, line in enumerate(source):
+		i, line = i, line.rstrip(ROW_DELIMITER)
+		logger.debug("Mapper input: {k:'%d', v:'%s'}" % (i, line))
 		for k, v in mapper(i, line):
-			sys.stderr.write("%d: %s\n" % (i, (k, v)))
+			emitRow(COL_DELIMITER.join(map(str, [k, v])))
 			
