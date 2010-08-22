@@ -59,6 +59,21 @@ class SampleMapper(BaseMapper):
 			yield key, value
 			
 			
+class ZenoSampleMapper(BaseMapper):
+	"""Sample input rows."""
+	def __init__(self, sampleProb=None, *args, **kwargs):
+		super(ZenoSampleMapper, self).__init__(*args, **kwargs)
+		if not sampleProb:
+			sampleProb = 1.0
+			logger.debug("%s was not given a sampling probability, using %f" % (self.__class__.__name__, sampleProb,))
+		self.sampleProb = sampleProb
+
+	def __call__(self, key, value):
+		if random.random() <= self.sampleProb:
+			self.sampleProb = 0.5 * self.sampleProb
+			yield key, value + '___' + str(2.0 * self.sampleProb)
+			
+			
 class UpperMapper(BaseMapper):
 	"""Emits rows in all caps."""
 	def __call__(self, key, value):
