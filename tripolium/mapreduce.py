@@ -118,9 +118,10 @@ class SampleMapper(BaseMapper):
 	:rtype: tuple
 	:return: A 2-tuple containing a key, value pair where value is the original uppercase version of the input value
 	
-	SQL/MR parameters:
+	:SQL/MR parameters:
 		:type sampleProb: float
-		:param partitionColumnIndex: The sampling probability, defaults to 1.0
+		:param partitionColumnIndex: The sampling probability
+		:default: 1.0
 	"""
 	def __init__(self, sampleProb=None, *args, **kwargs):
 		super(SampleMapper, self).__init__(*args, **kwargs)
@@ -145,25 +146,25 @@ class SessionMapper(BaseMapper):
 	:rtype: tuple
 	:return: A 2-tuple containing a key, value pair.
 	
-	SQL/MR parameters:
-		:type partitionColumnIndex: int
-		:param partitionColumnIndex: The 1-based index of the partition column
+	:SQL/MR parameters:
+		:type timeout: int
+		:param timeout: The session timeout in seconds
+		:default: 60
 		
-		:type orderColumnIndex: int
-		:param partitionColumnIndex: The 1-based index of the order column, assumed to be in "%Y-%m-%d %H:%M:%S" format
-		
-		:type sessionTimeout: int
-		:param sessionTimeout: The length of a session in seconds, defaults to 60
+		:type fmt: string
+		:param fmt: The format specifier of the datetime column
+		:default: '%Y-%m-%d %H:%M:%S'
 	"""
-	def __init__(self, timeout=60, *args, **kwargs):
+	def __init__(self, timeout=60, fmt=None, *args, **kwargs):
 		super(SessionMapper, self).__init__(*args, **kwargs)
-		self.dateTimeFormat = "%Y-%m-%d %H:%M:%S"
-		self.sessionTimeoutSeconds = timedelta(seconds=timeout)
+		self.sessionTimeoutSeconds = timedelta(seconds=int(timeout))
+		self.dateTimeFormat = fmt if fmt else "%Y-%m-%d %H:%M:%S"
 		self.currentSession = {}
-
+		
 	def __call__(self, key, value):
 		partitionRowNum, row = key, value
 
+		
 		userId, timeString = row.split(COL_DELIMITER)
 		timeString = datetime.strptime(timeString, self.dateTimeFormat)
 
