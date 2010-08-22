@@ -261,9 +261,13 @@ if __name__ == "__main__":
 	argsDict = {}
 	dynamicMapper = None
 	if len(sys.argv) > 1:
-		if hasattr(globals()[sys.argv[1]], '__call__'):
-			dynamicMapper = globals()[sys.argv[1]]
-			sys.argv.pop(1)
+		try:
+			if hasattr(globals()[sys.argv[1]], '__call__'):
+				dynamicMapper = globals()[sys.argv[1]]
+				className = sys.argv.pop(1)
+		except KeyError, e:
+			logging.error("%s is missing" % (e,))
+			sys.exit()
 		logger.debug("parsing args")
 		for arg in sys.argv[1:]:
 			option, value = arg.split('=')
