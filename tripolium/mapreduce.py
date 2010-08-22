@@ -109,12 +109,18 @@ class UpperMapper(BaseMapper):
 if __name__ == "__main__":
 	if DEBUG:
 		users = []
-		rowTemplate = "{userId}\t{firstName}\t{lastName}\t{dob}"
-		users.append(rowTemplate.format(userId=1001, firstName="Paul", lastName="Dirac", dob="1984-10-20"))
-		users.append(rowTemplate.format(userId=1002, firstName="Albert", lastName="Einstein", dob="1955-04-18"))
-		users.append(rowTemplate.format(userId=1003, firstName="Richard", lastName="Feynman", dob="1918-05-11"))
-		users.append(rowTemplate.format(userId=1004, firstName="Erwin", lastName="Schrodinger", dob="1887-08-12"))
-		source = StringIO.StringIO(ROW_DELIMITER.join(users))
+		usersCols = [
+			"{userId}",
+			"{firstName}",
+			"{lastName}",
+			"{dob}"
+		]
+		rowTemplate = COL_DELIMITER.join(usersCols)
+		users.append(rowTemplate.format(userId=1001, firstName="Paul", lastName="Dirac", dob="1984-10-20 00:00:00"))
+		users.append(rowTemplate.format(userId=1002, firstName="Albert", lastName="Einstein", dob="1955-04-18 00:00:0"))
+		users.append(rowTemplate.format(userId=1003, firstName="Richard", lastName="Feynman", dob="1918-05-11 00:00:0"))
+		users.append(rowTemplate.format(userId=1004, firstName="Erwin", lastName="Schrodinger", dob="1887-08-12 00:00:0"))
+		source = StringIO.StringIO(ROW_DELIMITER.join(users) + ROW_DELIMITER)
 	else:
 		source = sys.stdin
 		
