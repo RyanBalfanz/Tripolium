@@ -99,6 +99,20 @@ class ZenoSampleMapper(BaseMapper):
 			yield key, value + '___' + str(2.0 * self.sampleProb)
 			
 			
+class PartitionMapper(BaseMapper):
+	"""A mapper suitable for partitioned input.
+	
+	Note that nCluster initializes a new instance for each partition.
+	The mechanism is more than likely just separate invocations of the script.
+	"""
+	def __init__(self, timeout=60, *args, **kwargs):
+		super(PartitionMapper, self).__init__(*args, **kwargs)
+				
+	def __call__(self, key, value):
+		partitionRowNum, row = key, value
+		yield partitionRowNum, row
+			
+			
 class UpperMapper(BaseMapper):
 	"""Emits rows in all caps."""
 	def __call__(self, key, value):
