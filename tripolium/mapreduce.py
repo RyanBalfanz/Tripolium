@@ -46,7 +46,6 @@ conHandler.setFormatter(formatter)
 logger.setLevel(LOG_LEVEL)
 logger.addHandler(rotFileHandler)
 logger.addHandler(conHandler)
-
 		
 		
 class BaseMapper(object):
@@ -209,7 +208,6 @@ class SessionMapper(BaseMapper):
 		
 	def __call__(self, key, value):
 		partitionRowNum, row = key, value
-
 		
 		userId, timeString = row.split(COL_DELIMITER)
 		timeString = datetime.strptime(timeString, self.dateTimeFormat)
