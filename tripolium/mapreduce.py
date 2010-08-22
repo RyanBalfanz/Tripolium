@@ -259,7 +259,11 @@ if __name__ == "__main__":
 		source = sys.stdin
 		
 	argsDict = {}
+	dynamicMapper = None
 	if len(sys.argv) > 1:
+		if hasattr(globals()[sys.argv[1]], '__call__'):
+			dynamicMapper = globals()[sys.argv[1]]
+			sys.argv.pop(1)
 		logger.debug("parsing args")
 		for arg in sys.argv[1:]:
 			option, value = arg.split('=')
@@ -267,7 +271,7 @@ if __name__ == "__main__":
 			argsDict[option[2:]] = value
 		logger.debug("argsDict: %s" % (argsDict,))
 		
-	mapper = IdentityMapper()
+	mapper = dynamicMapper(**argsDict) if dynamicMapper else IdentityMapper(**argsDict)
 	# mapper = ZenoSampleMapper(sampleProb=1.0)
 	logger.info("Created new %s instance with extra kwargs %s" % (mapper.__class__.__name__, str(argsDict)))
 	for i, line in enumerate(source):
