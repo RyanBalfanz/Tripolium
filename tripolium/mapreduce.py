@@ -65,13 +65,46 @@ class BaseMapper(object):
 	:rtype: none
 	:return: Using this mapper directly will caise an Exception to be thrown
 	"""
-	def __init__(self, colDelimiter=None, rowDelimiter=None):
+	def __init__(self, colDelimiter=None, rowDelimiter=None, schema=None, *args, **kwargs):
 		self.colDelimiter = colDelimiter if colDelimiter else COL_DELIMITER
 		self.rowDelimiter = rowDelimiter if rowDelimiter else ROW_DELIMITER
-			
+		if DEBUG:
+			import schema as ss
+			self.meta = getattr(ss, 'DEBUG_SCHEMA')
+		if schema:
+			import schema as s
+			self.meta = getattr(s, schema)
+		else:
+			self.meta = None
+		# self.meta = kwargs if kwargs else None
+		# logger.debug("Meta: %s" % (str(self.meta),))
+		self.columns = {} if self.meta else None
+		
 	def __call__(self,key,value):
 		raise NotImplementedError("%s must implement its __call__ method." % (self.__class__.__name__,))
 		
+	def process_raw_columns(self, raw=None):
+		"""Process raw columns data into a dictionary
+		
+		:rtype: dict
+		:return: A dictionary mapping string column names to their typed values
+		"""
+		assert self.meta
+		fields = raw.split(COL_DELIMITER)
+		# logger.debug("Fields: %s" % (str(map(str, fields))),)
+		
+		for k, v in self.meta.iteritems():
+			# logger.debug("k: v; %s: %s" % (k, v,))
+			colData = fields[v["index"]-1]
+			colType = v["type"]
+			# logger.debug("k, colData, colType: %s, %s, %s" % (k, colData, colType))
+			try:
+				self.columns[k] = map(colType, (colData,))[0]
+				# logger.debug("Processed field '%s' into %s: %s" % (k, type(self.columns[k]), self.columns[k]))
+			except Exception, e:
+				raise Exception(e)
+				
+				
 		
 class IdentityMapper(BaseMapper):
 	"""The indentity mapper.
@@ -135,6 +168,23 @@ class SampleMapper(BaseMapper):
 	def __call__(self, key, value):
 		if random.random() <= self.sampleProb:
 			yield key, value
+			
+			
+class SchemaMapper(BaseMapper):
+	"""The schema indentity mapper.
+
+	:type key: int
+	:param key: The 0-based index of the input row
+
+	:type value: string
+	:param key: The string representation of the input row
+
+	:rtype: tuple
+	:return: A 2-tuple containing a key, value equal to the input key, value pair
+	"""
+	def __call__(self, key, value):
+		self.process_raw_columns(value)
+		yield key, str(self.columns)
 			
 			
 class SessionMapper(BaseMapper):
