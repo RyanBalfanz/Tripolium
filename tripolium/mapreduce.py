@@ -127,7 +127,9 @@ class SampleMapper(BaseMapper):
 		if not sampleProb:
 			sampleProb = 1.0
 			logger.debug("%s was not given a sampling probability, using %f" % (self.__class__.__name__, sampleProb,))
-		self.sampleProb = sampleProb
+		self.sampleProb = float(sampleProb)
+		logger.debug("%s.sampleProb is %f" % (self.__class__.__name__, self.sampleProb,))
+		
 		
 	def __call__(self, key, value):
 		if random.random() <= self.sampleProb:
