@@ -6,7 +6,7 @@ mapreduce.py
 Created by Balfanz, Ryan on 2010-08-20.
 Copyright (c) 2010 __MyCompanyName__. All rights reserved.
 
-A Python package for creating SQL/MR functions to be used with Aster Data's nCluster.
+A Python module for creating SQL/MR functions to be used with Aster Data's nCluster.
 """
 
 import logging
