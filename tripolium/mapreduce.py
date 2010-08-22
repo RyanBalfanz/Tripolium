@@ -255,12 +255,21 @@ if __name__ == "__main__":
 	else:
 		source = sys.stdin
 		
+	argsDict = {}
+	if len(sys.argv) > 1:
+		logger.debug("parsing args")
+		for arg in sys.argv[1:]:
+			option, value = arg.split('=')
+			assert option.startswith('--')
+			argsDict[option[2:]] = value
+		logger.debug("argsDict: %s" % (argsDict,))
+		
 	mapper = IdentityMapper()
 	# mapper = ZenoSampleMapper(sampleProb=1.0)
 	logger.info("Created new %s instance" % (mapper.__class__.__name__))
 	for i, line in enumerate(source):
 		i, line = i, line.rstrip(ROW_DELIMITER)
 		logger.debug("Mapper input: {k:'%d', v:'%s'}" % (i, line))
-		for k, v in mapper(i, line):
+		for k, v in mapper(i, line, **argsDict):
 			emitRow(COL_DELIMITER.join(map(str, [k, v])))
 			
