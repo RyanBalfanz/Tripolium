@@ -121,7 +121,10 @@ class SessionMapper(BaseMapper):
 		
 		
 class ZenoSampleMapper(BaseMapper):
-	"""Sample input rows."""
+	"""Sample input rows
+	
+	After each hit the sampling probability is halved.
+	"""
 	def __init__(self, sampleProb=None, *args, **kwargs):
 		super(ZenoSampleMapper, self).__init__(*args, **kwargs)
 		if not sampleProb:
