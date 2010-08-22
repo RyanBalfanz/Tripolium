@@ -54,7 +54,17 @@ def emitRow(s):
 		
 		
 class BaseMapper(object):
-	"""This is the base class for a mapper."""
+	"""This is the base class for a mapper.
+	
+	:type key: int
+	:param key: The 0-based index of the input row
+	
+	:type value: string
+	:param key: The string representation of the input row
+	
+	:rtype: none
+	:return: Using this mapper directly will caise an Exception to be thrown
+	"""
 	def __init__(self, colDelimiter=None, rowDelimiter=None):
 		self.colDelimiter = colDelimiter if colDelimiter else COL_DELIMITER
 		self.rowDelimiter = rowDelimiter if rowDelimiter else ROW_DELIMITER
@@ -64,20 +74,54 @@ class BaseMapper(object):
 		
 		
 class IdentityMapper(BaseMapper):
-	"""The indentity mapper."""
+	"""The indentity mapper.
+	
+	:type key: int
+	:param key: The 0-based index of the input row
+	
+	:type value: string
+	:param key: The string representation of the input row
+	
+	:rtype: tuple
+	:return: A 2-tuple containing a key, value equal to the input key, value pair
+	"""
 	def __call__(self, key, value):
 		yield key, value
 		
 		
 class ReverseMapper(BaseMapper):
-	"""Emits rows in all caps."""
+	"""Emits rows in all caps.
+	
+	:type key: int
+	:param key: The 0-based index of the input row
+	
+	:type value: string
+	:param key: The string representation of the input row
+	
+	:rtype: tuple
+	:return: A 2-tuple containing a key, value pair where value is the reversed version of the input value
+	"""
 	def __call__(self, key, value):
 		u, v = key, value[::-1]
 		yield u, v
 		
 		
 class SampleMapper(BaseMapper):
-	"""Sample input rows."""
+	"""Sample input rows.
+	
+	:type key: int
+	:param key: The 0-based index of the input row
+	
+	:type value: string
+	:param key: The string representation of the input row
+	
+	:rtype: tuple
+	:return: A 2-tuple containing a key, value pair where value is the original uppercase version of the input value
+	
+	SQL/MR parameters:
+		:type sampleProb: float
+		:param partitionColumnIndex: The sampling probability, defaults to 1.0
+	"""
 	def __init__(self, sampleProb=None, *args, **kwargs):
 		super(SampleMapper, self).__init__(*args, **kwargs)
 		if not sampleProb:
@@ -91,7 +135,24 @@ class SampleMapper(BaseMapper):
 			
 			
 class SessionMapper(BaseMapper):
-	"""A mapper to sessionize events."""
+	"""A mapper to sessionize events.
+	
+	:type key: int
+	:param key: The 0-based index of the input row
+	
+	:rtype: tuple
+	:return: A 2-tuple containing a key, value pair.
+	
+	SQL/MR parameters:
+		:type partitionColumnIndex: int
+		:param partitionColumnIndex: The 1-based index of the partition column
+		
+		:type orderColumnIndex: int
+		:param partitionColumnIndex: The 1-based index of the order column, assumed to be in "%Y-%m-%d %H:%M:%S" format
+		
+		:type sessionTimeout: int
+		:param sessionTimeout: The length of a session in seconds, defaults to 60
+	"""
 	def __init__(self, timeout=60, *args, **kwargs):
 		super(SessionMapper, self).__init__(*args, **kwargs)
 		self.dateTimeFormat = "%Y-%m-%d %H:%M:%S"
@@ -121,9 +182,16 @@ class SessionMapper(BaseMapper):
 		
 		
 class ZenoSampleMapper(BaseMapper):
-	"""Sample input rows
+	"""Sample input rows, after each hit the sampling probability is halved.
 	
-	After each hit the sampling probability is halved.
+	:type key: int
+	:param key: The 0-based index of the input row
+	
+	:type value: string
+	:param key: The string representation of the input row
+	
+	:rtype: unknown
+	:return: A 2-tuple key, value pair when appropriate
 	"""
 	def __init__(self, sampleProb=None, *args, **kwargs):
 		super(ZenoSampleMapper, self).__init__(*args, **kwargs)
@@ -153,7 +221,17 @@ class PartitionMapper(BaseMapper):
 			
 			
 class UpperMapper(BaseMapper):
-	"""Emits rows in all caps."""
+	"""Emits rows in all caps.
+	
+	:type key: int
+	:param key: The 0-based index of the input row
+	
+	:type value: string
+	:param key: The string representation of the input row
+	
+	:rtype: tuple
+	:return: A 2-tuple containing a key, value pair where value is the original uppercase version of the input value
+	"""
 	def __call__(self, key, value):
 		u, v = key, value.upper()
 		yield u, v
