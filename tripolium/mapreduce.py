@@ -21,7 +21,9 @@ from datetime import datetime
 from datetime import timedelta
 
 # Tripolium modules
-from settings import DEBUG, COL_DELIMITER, ROW_DELIMITER
+from mapreduce import mappers
+from mapreduce.settings import COL_DELIMITER, ROW_DELIMITER
+from settings import DEBUG
 from utils import emitRow
 
 if DEBUG:
