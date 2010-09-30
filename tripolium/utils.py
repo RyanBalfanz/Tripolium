@@ -1,10 +1,10 @@
 import csv
 import sys
 
-from mapreduce.settings import COL_DELIMITER, ROW_DELIMITER
+# from mapreduce.settings import COL_DELIMITER, ROW_DELIMITER
 
 # Tripolium modules
-import settings
+from settings import COL_DELIMITER, ROW_DELIMITER
 # from logging.loggers import logger
 
 def csv_to_db(csvFile=None):
@@ -22,3 +22,4 @@ def emitRow(s=None):
 if __name__ == "__main__":
 	for row in csv_to_db("user.csv"):
 		emitRow(row)
+		
