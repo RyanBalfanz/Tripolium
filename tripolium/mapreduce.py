@@ -259,6 +259,8 @@ class PartitionMapper(BaseMapper):
 	
 	Note that nCluster initializes a new instance for each partition.
 	The mechanism is more than likely just separate invocations of the script.
+	
+	* Actually, I don't think this is necessarily true after all, need to contact support.
 	"""
 	def __init__(self, *args, **kwargs):
 		super(PartitionMapper, self).__init__(*args, **kwargs)
