@@ -260,8 +260,9 @@ class PartitionMapper(BaseMapper):
 	Note that nCluster initializes a new instance for each partition.
 	The mechanism is more than likely just separate invocations of the script.
 	"""
-	def __init__(self, timeout=60, *args, **kwargs):
+	def __init__(self, *args, **kwargs):
 		super(PartitionMapper, self).__init__(*args, **kwargs)
+		self.currentPartition = {}
 				
 	def __call__(self, key, value):
 		partitionRowNum, row = key, value
