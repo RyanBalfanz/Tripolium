@@ -52,22 +52,48 @@ class BaseMapper(object):
 				# logger.debug("Processed field '%s' into %s: %s" % (k, type(self.columns[k]), self.columns[k]))
 			except Exception, e:
 				raise Exception(e)
-				
-				
-				class IdentityMapper(mappers.BaseMapper):
-					"""The indentity mapper.
 
-					:type key: int
-					:param key: The 0-based index of the input row
 
-					:type value: string
-					:param key: The string representation of the input row
+class IdentityMapper(BaseMapper):
+	"""The indentity mapper.
 
-					:rtype: tuple
-					:return: A 2-tuple containing a key, value equal to the input key, value pair
-					"""
-					def __call__(self, key, value):
-						yield key, value
+	:type key: int
+	:param key: The 0-based index of the input row
+
+	:type value: string
+	:param key: The string representation of the input row
+
+	:rtype: tuple
+	:return: A 2-tuple containing a key, value equal to the input key, value pair
+	"""
+	def __call__(self, key, value):
+		yield key, value
+
+
+# class GroupConcatMapper(mappers.BaseMapper):
+# 	"""Concatenate values from a group into a single string result.
+# 	
+# 	:type key: int
+# 	:param key: The 0-based index of the input row
+# 	
+# 	:type value: string
+# 	:param key: The string representation of the input row
+# 	
+# 	:rtype: tuple
+# 	:return: 
+# 	"""
+# 	def __init__(self, timeout=60, *args, **kwargs):
+# 		super(GroupConcatMapper, self).__init__(*args, **kwargs)
+# 		self.separator = ','
+# 		self.elements = []
+# 		
+# 	def __call__(self, key, value):
+# 		yield key, value
+# 		partitionRowNum, row = key, value
+# 		group, order, value= row.split(COL_DELIMITER)
+# 		
+# 		u, v = str(group), self.separator.join(map(str, [order, value]))
+# 		# yield u, v
 
 
 class ReverseMapper(BaseMapper):
