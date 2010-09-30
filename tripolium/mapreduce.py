@@ -21,7 +21,11 @@ from datetime import datetime
 from datetime import timedelta
 
 # Tripolium modules
-from settings import DEBUG, COL_DELIMITER, ROW_DELIMITER
+# from mapreduce import mappers
+# from mapreduce.settings import COL_DELIMITER, ROW_DELIMITER
+# from settings import DEBUG
+import mappers
+from settings import COL_DELIMITER, ROW_DELIMITER, DEBUG
 from utils import emitRow
 
 if DEBUG:
@@ -48,60 +52,86 @@ logger.addHandler(rotFileHandler)
 logger.addHandler(conHandler)
 		
 		
-class BaseMapper(object):
-	"""This is the base class for a mapper.
-	
-	:type key: int
-	:param key: The 0-based index of the input row
-	
-	:type value: string
-	:param key: The string representation of the input row
-	
-	:rtype: none
-	:return: Using this mapper directly will caise an Exception to be thrown
-	"""
-	def __init__(self, colDelimiter=None, rowDelimiter=None, schema=None, *args, **kwargs):
-		self.colDelimiter = colDelimiter if colDelimiter else COL_DELIMITER
-		self.rowDelimiter = rowDelimiter if rowDelimiter else ROW_DELIMITER
-		if DEBUG:
-			import schema as ss
-			self.meta = getattr(ss, 'DEBUG_SCHEMA')
-		if schema:
-			import schema as s
-			self.meta = getattr(s, schema)
-		else:
-			self.meta = None
-		# self.meta = kwargs if kwargs else None
-		# logger.debug("Meta: %s" % (str(self.meta),))
-		self.columns = {} if self.meta else None
-		
-	def __call__(self,key,value):
-		raise NotImplementedError("%s must implement its __call__ method." % (self.__class__.__name__,))
-		
-	def process_raw_columns(self, raw=None):
-		"""Process raw columns data into a dictionary
-		
-		:rtype: dict
-		:return: A dictionary mapping string column names to their typed values
-		"""
-		assert self.meta
-		fields = raw.split(COL_DELIMITER)
-		# logger.debug("Fields: %s" % (str(map(str, fields))),)
-		
-		for k, v in self.meta.iteritems():
-			# logger.debug("k: v; %s: %s" % (k, v,))
-			colData = fields[v["index"]-1]
-			colType = v["type"]
-			# logger.debug("k, colData, colType: %s, %s, %s" % (k, colData, colType))
-			try:
-				self.columns[k] = map(colType, (colData,))[0]
-				# logger.debug("Processed field '%s' into %s: %s" % (k, type(self.columns[k]), self.columns[k]))
-			except Exception, e:
-				raise Exception(e)
+# class BaseMapper(object):
+# 	"""This is the base class for a mapper.
+# 	
+# 	:type key: int
+# 	:param key: The 0-based index of the input row
+# 	
+# 	:type value: string
+# 	:param key: The string representation of the input row
+# 	
+# 	:rtype: none
+# 	:return: Using this mapper directly will caise an Exception to be thrown
+# 	"""
+# 	def __init__(self, colDelimiter=None, rowDelimiter=None, schema=None, *args, **kwargs):
+# 		self.colDelimiter = colDelimiter if colDelimiter else COL_DELIMITER
+# 		self.rowDelimiter = rowDelimiter if rowDelimiter else ROW_DELIMITER
+# 		if DEBUG:
+# 			import schema as ss
+# 			self.meta = getattr(ss, 'DEBUG_SCHEMA')
+# 		if schema:
+# 			import schema as s
+# 			self.meta = getattr(s, schema)
+# 		else:
+# 			self.meta = None
+# 		# self.meta = kwargs if kwargs else None
+# 		# logger.debug("Meta: %s" % (str(self.meta),))
+# 		self.columns = {} if self.meta else None
+# 		
+# 	def __call__(self,key,value):
+# 		# if DEBUG: return
+# 		raise NotImplementedError("%s must implement its __call__ method." % (self.__class__.__name__,))
+# 		
+# 	def process_raw_columns(self, raw=None):
+# 		"""Process raw columns data into a dictionary
+# 		
+# 		:rtype: dict
+# 		:return: A dictionary mapping string column names to their typed values
+# 		"""
+# 		assert self.meta
+# 		fields = raw.split(COL_DELIMITER)
+# 		# logger.debug("Fields: %s" % (str(map(str, fields))),)
+# 		
+# 		for k, v in self.meta.iteritems():
+# 			# logger.debug("k: v; %s: %s" % (k, v,))
+# 			colData = fields[v["index"]-1]
+# 			colType = v["type"]
+# 			# logger.debug("k, colData, colType: %s, %s, %s" % (k, colData, colType))
+# 			try:
+# 				self.columns[k] = map(colType, (colData,))[0]
+# 				# logger.debug("Processed field '%s' into %s: %s" % (k, type(self.columns[k]), self.columns[k]))
+# 			except Exception, e:
+# 				raise Exception(e)
 				
 				
+# class GroupConcatMapper(mappers.BaseMapper):
+# 	"""Concatenate values from a group into a single string result.
+# 	
+# 	:type key: int
+# 	:param key: The 0-based index of the input row
+# 	
+# 	:type value: string
+# 	:param key: The string representation of the input row
+# 	
+# 	:rtype: tuple
+# 	:return: 
+# 	"""
+# 	def __init__(self, timeout=60, *args, **kwargs):
+# 		super(GroupConcatMapper, self).__init__(*args, **kwargs)
+# 		self.separator = ','
+# 		self.elements = []
+# 		
+# 	def __call__(self, key, value):
+# 		yield key, value
+# 		partitionRowNum, row = key, value
+# 		group, order, value= row.split(COL_DELIMITER)
+# 		
+# 		u, v = str(group), self.separator.join(map(str, [order, value]))
+# 		# yield u, v
 		
-class IdentityMapper(BaseMapper):
+		
+class IdentityMapper(mappers.BaseMapper):
 	"""The indentity mapper.
 	
 	:type key: int
@@ -117,7 +147,7 @@ class IdentityMapper(BaseMapper):
 		yield key, value
 		
 		
-class ReverseMapper(BaseMapper):
+class ReverseMapper(mappers.BaseMapper):
 	"""Emits rows in all caps.
 	
 	:type key: int
@@ -134,7 +164,7 @@ class ReverseMapper(BaseMapper):
 		yield u, v
 		
 		
-class SampleMapper(BaseMapper):
+class SampleMapper(mappers.BaseMapper):
 	"""Sample input rows.
 	
 	:type key: int
@@ -165,7 +195,7 @@ class SampleMapper(BaseMapper):
 			yield key, value
 			
 			
-class SchemaMapper(BaseMapper):
+class SchemaMapper(mappers.BaseMapper):
 	"""The schema indentity mapper.
 
 	:type key: int
@@ -182,7 +212,7 @@ class SchemaMapper(BaseMapper):
 		yield key, str(self.columns)
 			
 			
-class SessionMapper(BaseMapper):
+class SessionMapper(mappers.BaseMapper):
 	"""A mapper to sessionize events.
 	
 	:type key: int
@@ -254,7 +284,7 @@ class ZenoSampleMapper(SampleMapper):
 			yield key, value + '___' + str(2.0 * self.sampleProb)
 			
 			
-class PartitionMapper(BaseMapper):
+class PartitionMapper(mappers.BaseMapper):
 	"""A mapper suitable for partitioned input.
 	
 	Note that nCluster initializes a new instance for each partition.
@@ -269,7 +299,7 @@ class PartitionMapper(BaseMapper):
 		yield partitionRowNum, row
 			
 			
-class UpperMapper(BaseMapper):
+class UpperMapper(mappers.BaseMapper):
 	"""Emits rows in all caps.
 	
 	:type key: int
@@ -322,7 +352,6 @@ if __name__ == "__main__":
 		logger.debug("argsDict: %s" % (argsDict,))
 		
 	mapper = dynamicMapper(**argsDict) if dynamicMapper else IdentityMapper(**argsDict)
-	# mapper = ZenoSampleMapper(sampleProb=1.0)
 	logger.info("Created new %s instance with extra kwargs %s" % (mapper.__class__.__name__, str(argsDict)))
 	for i, line in enumerate(source):
 		i, line = i, line.rstrip(ROW_DELIMITER)
