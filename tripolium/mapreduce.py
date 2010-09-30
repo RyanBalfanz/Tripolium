@@ -24,7 +24,7 @@ from datetime import timedelta
 # from mapreduce import mappers
 # from mapreduce.settings import COL_DELIMITER, ROW_DELIMITER
 # from settings import DEBUG
-import mappers
+from mappers import IdentityMapper
 from settings import COL_DELIMITER, ROW_DELIMITER, DEBUG
 from utils import emitRow
 
@@ -103,10 +103,10 @@ from utils import emitRow
 # 				# logger.debug("Processed field '%s' into %s: %s" % (k, type(self.columns[k]), self.columns[k]))
 # 			except Exception, e:
 # 				raise Exception(e)
-				
-				
-# class GroupConcatMapper(mappers.BaseMapper):
-# 	"""Concatenate values from a group into a single string result.
+# 
+# 
+# class IdentityMapper(mappers.BaseMapper):
+# 	"""The indentity mapper.
 # 	
 # 	:type key: int
 # 	:param key: The 0-based index of the input row
@@ -115,205 +115,179 @@ from utils import emitRow
 # 	:param key: The string representation of the input row
 # 	
 # 	:rtype: tuple
-# 	:return: 
+# 	:return: A 2-tuple containing a key, value equal to the input key, value pair
 # 	"""
-# 	def __init__(self, timeout=60, *args, **kwargs):
-# 		super(GroupConcatMapper, self).__init__(*args, **kwargs)
-# 		self.separator = ','
-# 		self.elements = []
-# 		
 # 	def __call__(self, key, value):
 # 		yield key, value
-# 		partitionRowNum, row = key, value
-# 		group, order, value= row.split(COL_DELIMITER)
 # 		
-# 		u, v = str(group), self.separator.join(map(str, [order, value]))
-# 		# yield u, v
-		
-		
-class IdentityMapper(mappers.BaseMapper):
-	"""The indentity mapper.
-	
-	:type key: int
-	:param key: The 0-based index of the input row
-	
-	:type value: string
-	:param key: The string representation of the input row
-	
-	:rtype: tuple
-	:return: A 2-tuple containing a key, value equal to the input key, value pair
-	"""
-	def __call__(self, key, value):
-		yield key, value
-		
-		
-class ReverseMapper(mappers.BaseMapper):
-	"""Emits rows in all caps.
-	
-	:type key: int
-	:param key: The 0-based index of the input row
-	
-	:type value: string
-	:param key: The string representation of the input row
-	
-	:rtype: tuple
-	:return: A 2-tuple containing a key, value pair where value is the reversed version of the input value
-	"""
-	def __call__(self, key, value):
-		u, v = key, value[::-1]
-		yield u, v
-		
-		
-class SampleMapper(mappers.BaseMapper):
-	"""Sample input rows.
-	
-	:type key: int
-	:param key: The 0-based index of the input row
-	
-	:type value: string
-	:param key: The string representation of the input row
-	
-	:rtype: tuple
-	:return: A 2-tuple containing a key, value pair where value is the original uppercase version of the input value
-	
-	:SQL/MR parameters:
-		:type sampleProb: float
-		:param partitionColumnIndex: The sampling probability
-		:default: 1.0
-	"""
-	def __init__(self, sampleProb=None, *args, **kwargs):
-		super(SampleMapper, self).__init__(*args, **kwargs)
-		if not sampleProb:
-			sampleProb = 1.0
-			logger.debug("%s was not given a sampling probability, using %f" % (self.__class__.__name__, sampleProb,))
-		self.sampleProb = float(sampleProb)
-		logger.debug("%s.sampleProb is %f" % (self.__class__.__name__, self.sampleProb,))
-		
-		
-	def __call__(self, key, value):
-		if random.random() <= self.sampleProb:
-			yield key, value
-			
-			
-class SchemaMapper(mappers.BaseMapper):
-	"""The schema indentity mapper.
-
-	:type key: int
-	:param key: The 0-based index of the input row
-
-	:type value: string
-	:param key: The string representation of the input row
-
-	:rtype: tuple
-	:return: A 2-tuple containing a key, value equal to the input key, value pair
-	"""
-	def __call__(self, key, value):
-		self.process_raw_columns(value)
-		yield key, str(self.columns)
-			
-			
-class SessionMapper(mappers.BaseMapper):
-	"""A mapper to sessionize events.
-	
-	:type key: int
-	:param key: The 0-based index of the input row
-	
-	:rtype: tuple
-	:return: A 2-tuple containing a key, value pair.
-	
-	:SQL/MR parameters:
-		:type timeout: int
-		:param timeout: The session timeout in seconds
-		:default: 60
-		
-		:type fmt: string
-		:param fmt: The format specifier of the datetime column
-		:default: '%Y-%m-%d %H:%M:%S'
-	"""
-	def __init__(self, timeout=60, fmt=None, *args, **kwargs):
-		super(SessionMapper, self).__init__(*args, **kwargs)
-		self.sessionTimeoutSeconds = timedelta(seconds=int(timeout))
-		self.dateTimeFormat = fmt if fmt else "%Y-%m-%d %H:%M:%S"
-		self.currentSession = {}
-		
-	def __call__(self, key, value):
-		partitionRowNum, row = key, value
-		
-		userId, timeString = row.split(COL_DELIMITER)
-		timeString = datetime.strptime(timeString, self.dateTimeFormat)
-
-		if not self.currentSession:
-			self.currentSession["number"] = 0
-			self.currentSession["start"] = timeString
-			self.currentSession["length"] = timedelta(0.0)
-
-		dt = timeString - self.currentSession["start"]
-		if dt > self.sessionTimeoutSeconds:
-			self.currentSession["number"] += 1
-			self.currentSession["start"] = timeString
-			self.currentSession["length"] = timedelta(0.0)
-		else:
-			self.currentSession["length"] = dt
-
-		yield str(userId), str(timeString) + "___" + str(self.currentSession["number"]) + "___" + str(self.currentSession["length"])
-		
-		
-class ZenoSampleMapper(SampleMapper):
-	"""Sample input rows, after each hit the sampling probability is halved.
-	
-	:type key: int
-	:param key: The 0-based index of the input row
-	
-	:type value: string
-	:param key: The string representation of the input row
-	
-	:rtype: unknown
-	:return: A 2-tuple key, value pair when appropriate
-	"""
-	# def __init__(self, sampleProb=None, *args, **kwargs):
-	# 	super(ZenoSampleMapper, self).__init__(*args, **kwargs)
-	# 	if not sampleProb:
-	# 		sampleProb = 1.0
-	# 		logger.debug("%s was not given a sampling probability, using %f" % (self.__class__.__name__, sampleProb,))
-	# 	self.sampleProb = sampleProb
-	# 	logger.debug("%s.sampleProb is %f" % (self.__class__.__name__, self.sampleProb,))
-	# 	
-	def __call__(self, key, value):
-		if random.random() <= self.sampleProb:
-			self.sampleProb = 0.5 * self.sampleProb
-			yield key, value + '___' + str(2.0 * self.sampleProb)
-			
-			
-class PartitionMapper(mappers.BaseMapper):
-	"""A mapper suitable for partitioned input.
-	
-	Note that nCluster initializes a new instance for each partition.
-	The mechanism is more than likely just separate invocations of the script.
-	"""
-	def __init__(self, *args, **kwargs):
-		super(PartitionMapper, self).__init__(*args, **kwargs)
-		self.currentPartition = {}
-				
-	def __call__(self, key, value):
-		partitionRowNum, row = key, value
-		yield partitionRowNum, row
-			
-			
-class UpperMapper(mappers.BaseMapper):
-	"""Emits rows in all caps.
-	
-	:type key: int
-	:param key: The 0-based index of the input row
-	
-	:type value: string
-	:param key: The string representation of the input row
-	
-	:rtype: tuple
-	:return: A 2-tuple containing a key, value pair where value is the original uppercase version of the input value
-	"""
-	def __call__(self, key, value):
-		u, v = key, value.upper()
-		yield u, v
+# 		
+# class ReverseMapper(mappers.BaseMapper):
+# 	"""Emits rows in all caps.
+# 	
+# 	:type key: int
+# 	:param key: The 0-based index of the input row
+# 	
+# 	:type value: string
+# 	:param key: The string representation of the input row
+# 	
+# 	:rtype: tuple
+# 	:return: A 2-tuple containing a key, value pair where value is the reversed version of the input value
+# 	"""
+# 	def __call__(self, key, value):
+# 		u, v = key, value[::-1]
+# 		yield u, v
+# 		
+# 		
+# class SampleMapper(mappers.BaseMapper):
+# 	"""Sample input rows.
+# 	
+# 	:type key: int
+# 	:param key: The 0-based index of the input row
+# 	
+# 	:type value: string
+# 	:param key: The string representation of the input row
+# 	
+# 	:rtype: tuple
+# 	:return: A 2-tuple containing a key, value pair where value is the original uppercase version of the input value
+# 	
+# 	:SQL/MR parameters:
+# 		:type sampleProb: float
+# 		:param partitionColumnIndex: The sampling probability
+# 		:default: 1.0
+# 	"""
+# 	def __init__(self, sampleProb=None, *args, **kwargs):
+# 		super(SampleMapper, self).__init__(*args, **kwargs)
+# 		if not sampleProb:
+# 			sampleProb = 1.0
+# 			logger.debug("%s was not given a sampling probability, using %f" % (self.__class__.__name__, sampleProb,))
+# 		self.sampleProb = float(sampleProb)
+# 		logger.debug("%s.sampleProb is %f" % (self.__class__.__name__, self.sampleProb,))
+# 		
+# 		
+# 	def __call__(self, key, value):
+# 		if random.random() <= self.sampleProb:
+# 			yield key, value
+# 			
+# 			
+# class SchemaMapper(mappers.BaseMapper):
+# 	"""The schema indentity mapper.
+# 
+# 	:type key: int
+# 	:param key: The 0-based index of the input row
+# 
+# 	:type value: string
+# 	:param key: The string representation of the input row
+# 
+# 	:rtype: tuple
+# 	:return: A 2-tuple containing a key, value equal to the input key, value pair
+# 	"""
+# 	def __call__(self, key, value):
+# 		self.process_raw_columns(value)
+# 		yield key, str(self.columns)
+# 			
+# 			
+# class SessionMapper(mappers.BaseMapper):
+# 	"""A mapper to sessionize events.
+# 	
+# 	:type key: int
+# 	:param key: The 0-based index of the input row
+# 	
+# 	:rtype: tuple
+# 	:return: A 2-tuple containing a key, value pair.
+# 	
+# 	:SQL/MR parameters:
+# 		:type timeout: int
+# 		:param timeout: The session timeout in seconds
+# 		:default: 60
+# 		
+# 		:type fmt: string
+# 		:param fmt: The format specifier of the datetime column
+# 		:default: '%Y-%m-%d %H:%M:%S'
+# 	"""
+# 	def __init__(self, timeout=60, fmt=None, *args, **kwargs):
+# 		super(SessionMapper, self).__init__(*args, **kwargs)
+# 		self.sessionTimeoutSeconds = timedelta(seconds=int(timeout))
+# 		self.dateTimeFormat = fmt if fmt else "%Y-%m-%d %H:%M:%S"
+# 		self.currentSession = {}
+# 		
+# 	def __call__(self, key, value):
+# 		partitionRowNum, row = key, value
+# 		
+# 		userId, timeString = row.split(COL_DELIMITER)
+# 		timeString = datetime.strptime(timeString, self.dateTimeFormat)
+# 
+# 		if not self.currentSession:
+# 			self.currentSession["number"] = 0
+# 			self.currentSession["start"] = timeString
+# 			self.currentSession["length"] = timedelta(0.0)
+# 
+# 		dt = timeString - self.currentSession["start"]
+# 		if dt > self.sessionTimeoutSeconds:
+# 			self.currentSession["number"] += 1
+# 			self.currentSession["start"] = timeString
+# 			self.currentSession["length"] = timedelta(0.0)
+# 		else:
+# 			self.currentSession["length"] = dt
+# 
+# 		yield str(userId), str(timeString) + "___" + str(self.currentSession["number"]) + "___" + str(self.currentSession["length"])
+# 		
+# 		
+# class ZenoSampleMapper(SampleMapper):
+# 	"""Sample input rows, after each hit the sampling probability is halved.
+# 	
+# 	:type key: int
+# 	:param key: The 0-based index of the input row
+# 	
+# 	:type value: string
+# 	:param key: The string representation of the input row
+# 	
+# 	:rtype: unknown
+# 	:return: A 2-tuple key, value pair when appropriate
+# 	"""
+# 	# def __init__(self, sampleProb=None, *args, **kwargs):
+# 	# 	super(ZenoSampleMapper, self).__init__(*args, **kwargs)
+# 	# 	if not sampleProb:
+# 	# 		sampleProb = 1.0
+# 	# 		logger.debug("%s was not given a sampling probability, using %f" % (self.__class__.__name__, sampleProb,))
+# 	# 	self.sampleProb = sampleProb
+# 	# 	logger.debug("%s.sampleProb is %f" % (self.__class__.__name__, self.sampleProb,))
+# 	# 	
+# 	def __call__(self, key, value):
+# 		if random.random() <= self.sampleProb:
+# 			self.sampleProb = 0.5 * self.sampleProb
+# 			yield key, value + '___' + str(2.0 * self.sampleProb)
+# 			
+# 			
+# class PartitionMapper(mappers.BaseMapper):
+# 	"""A mapper suitable for partitioned input.
+# 	
+# 	Note that nCluster initializes a new instance for each partition.
+# 	The mechanism is more than likely just separate invocations of the script.
+# 	"""
+# 	def __init__(self, *args, **kwargs):
+# 		super(PartitionMapper, self).__init__(*args, **kwargs)
+# 		self.currentPartition = {}
+# 				
+# 	def __call__(self, key, value):
+# 		partitionRowNum, row = key, value
+# 		yield partitionRowNum, row
+# 			
+# 			
+# class UpperMapper(mappers.BaseMapper):
+# 	"""Emits rows in all caps.
+# 	
+# 	:type key: int
+# 	:param key: The 0-based index of the input row
+# 	
+# 	:type value: string
+# 	:param key: The string representation of the input row
+# 	
+# 	:rtype: tuple
+# 	:return: A 2-tuple containing a key, value pair where value is the original uppercase version of the input value
+# 	"""
+# 	def __call__(self, key, value):
+# 		u, v = key, value.upper()
+# 		yield u, v
 		
 		
 if __name__ == "__main__":
