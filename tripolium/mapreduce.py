@@ -9,8 +9,8 @@ Copyright (c) 2010 __MyCompanyName__. All rights reserved.
 A Python module for creating SQL/MR functions to be used with Aster Data's nCluster.
 """
 
-import logging
-import logging.handlers
+# import logging
+# import logging.handlers
 import random
 import sys
 try:
@@ -28,28 +28,28 @@ import mappers
 from settings import COL_DELIMITER, ROW_DELIMITER, DEBUG
 from utils import emitRow
 
-if DEBUG:
-	LOG_FILENAME = 'debug.log.out.txt'
-	LOG_LEVEL = logging.DEBUG
-else:
-	LOG_FILENAME = 'sqlmr.log.out.txt'
-	LOG_LEVEL = logging.INFO
-
-# Set up a specific logger with our desired output level
-logger = logging.getLogger('Tripolium')
-formatter = logging.Formatter("%(name)s,%(levelname)s,%(message)s")
-# formatter = logging.Formatter("%(asctime)s,%(name)s,%(levelname)s,%(message)s")
-
-# Add the log message handler to the logger
-rotFileHandler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=1024, backupCount=1)
-conHandler = logging.StreamHandler()
-
-rotFileHandler.setFormatter(formatter)
-conHandler.setFormatter(formatter)
-
-logger.setLevel(LOG_LEVEL)
-logger.addHandler(rotFileHandler)
-logger.addHandler(conHandler)
+# if DEBUG:
+# 	LOG_FILENAME = 'debug.log.out.txt'
+# 	LOG_LEVEL = logging.DEBUG
+# else:
+# 	LOG_FILENAME = 'sqlmr.log.out.txt'
+# 	LOG_LEVEL = logging.INFO
+# 
+# # Set up a specific logger with our desired output level
+# logger = logging.getLogger('Tripolium')
+# formatter = logging.Formatter("%(name)s,%(levelname)s,%(message)s")
+# # formatter = logging.Formatter("%(asctime)s,%(name)s,%(levelname)s,%(message)s")
+# 
+# # Add the log message handler to the logger
+# rotFileHandler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=1024, backupCount=1)
+# conHandler = logging.StreamHandler()
+# 
+# rotFileHandler.setFormatter(formatter)
+# conHandler.setFormatter(formatter)
+# 
+# logger.setLevel(LOG_LEVEL)
+# logger.addHandler(rotFileHandler)
+# logger.addHandler(conHandler)
 		
 		
 # class BaseMapper(object):
@@ -344,18 +344,18 @@ if __name__ == "__main__":
 		except KeyError, e:
 			logging.error("%s is missing" % (e,))
 			sys.exit()
-		logger.debug("parsing args")
+		# logger.debug("parsing args")
 		for arg in sys.argv[1:]:
 			option, value = arg.split('=')
 			assert option.startswith('--')
 			argsDict[option[2:]] = value
-		logger.debug("argsDict: %s" % (argsDict,))
+		# logger.debug("argsDict: %s" % (argsDict,))
 		
 	mapper = dynamicMapper(**argsDict) if dynamicMapper else IdentityMapper(**argsDict)
-	logger.info("Created new %s instance with extra kwargs %s" % (mapper.__class__.__name__, str(argsDict)))
+	# logger.info("Created new %s instance with extra kwargs %s" % (mapper.__class__.__name__, str(argsDict)))
 	for i, line in enumerate(source):
 		i, line = i, line.rstrip(ROW_DELIMITER)
-		logger.debug("%s input: {k:'%d', v:'%s'}" % (mapper.__class__.__name__, i, line))
+		# logger.debug("%s input: {k:'%d', v:'%s'}" % (mapper.__class__.__name__, i, line))
 		for k, v in mapper(i, line):
 			emitRow(COL_DELIMITER.join(map(str, [k, v])))
 			
